@@ -2,6 +2,7 @@
 const express = require('express');
 const sequelize = require('../config/connection');
 const session = require('express-session');
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -33,9 +34,10 @@ Tag.belongsToMany(Product, {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(session(sess))
+app.use(session)
 
-const allRoutes = require("./controllers")
+const allRoutes = require("../routes/api/index")
+console.log(allRoutes);
 
 app.use(allRoutes)
 
@@ -50,3 +52,4 @@ module.exports = {
   Tag,
   ProductTag,
 };
+module.exports = router;
