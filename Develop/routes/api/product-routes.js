@@ -3,50 +3,43 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 
 // The `/api/products` endpoint
 
-// get all products
-
-  // find all products
-  // be sure to include its associated Category and Tag data
+// GET ROUTE - ALL
 router.get('/', (req, res) => {
   Product.findAll({
-    include:[Category,Tag]
-  })
-    .then((products)=>{
-      res.json(products);
-    })
-    .catch((err)=>{
-      console.log(err);
-      res.status(500).json({msg:"error",err});
-    });
+    include: [{
+      model: Category,
+      required: false
+    },{
+      model: Tag,
+      required: false}]
+  }).then(products=>{
+    res.json(products);
+  }).catch(err=>{
+    console.log(err);
+    res.status(500).json({msg:"error occurred",err});
+  });
 });
 
-// get one product
-// find a single product by its `id`
-// be sure to include its associated Category and Tag data
+// GET ROUTE - SINGULAR
 router.get('/:id', (req, res) => {
-  Product.findByPk(req.params.id)
-  .then((product)=>{
-     res.json(product)
-  })
-  .catch((err)=>{
+  Product.findByPk(req.params.id,{
+    include: [{
+      model: Category,
+      required: false
+    },{
+      model: Tag,
+      required: false}]
+  }).then(product=>{
+    res.json(product);
+  }).catch(err=>{
     console.log(err);
-    res.status(500).json({msg:"error",err});
+    res.status(500).json({msg:"error occurred",err});
   });
 });
 
 // create new product
+// TODO: explain with comments, add category appending
 router.post('/', (req, res) => {
-  Product.create({
-    product_name:req.body.name,
-    price:req.params.price,
-    stock:req.params.stock,
-    tagIds: [1,2,3,4]
-  }).then((newProduct)=>{
-    res.json(newProduct)
-  }).catch((err)=>{
-    console.log(err);
-    res.status(500).json({msg:"error",err});
-  });
   /* req.body should look like this...
     {
       product_name: "Basketball",
@@ -78,24 +71,15 @@ router.post('/', (req, res) => {
 });
 
 // update product
+// TODO: Add comments explaining functionality
 router.put('/:id', (req, res) => {
   // update product data
-  Product.update( 
-    {
-      id:DataTypes.INTEGER,
-      allowNull:false,
-      primaryKey: true,
-      autoIncrement: true,
-
-    }
-  )
-    .then((editProduct) => {
-      res.json(editProduct);
-    })
-    .catch((err)=>{
-      console.log(err);
-      res.status(500).json({msg:"error",err});
-    });
+  Product.update(req.body, {
+    where: {
+      id: req.params.id,
+    },
+  })
+    .then((product) => {
       // find all associated tags from ProductTag
       return ProductTag.findAll({ where: { product_id: req.params.id } });
     })
@@ -103,7 +87,7 @@ router.put('/:id', (req, res) => {
       // get list of current tag_ids
       const productTagIds = productTags.map(({ tag_id }) => tag_id);
       // create filtered list of new tag_ids
-      const newProductuctTags = req.body.tagIds
+      const newProductTags = req.body.tagIds
         .filter((tag_id) => !productTagIds.includes(tag_id))
         .map((tag_id) => {
           return {
@@ -119,7 +103,7 @@ router.put('/:id', (req, res) => {
       // run both actions
       return Promise.all([
         ProductTag.destroy({ where: { id: productTagsToRemove } }),
-        ProductTag.bulkCreate(newProductuctTags),
+        ProductTag.bulkCreate(newProductTags),
       ]);
     })
     .then((updatedProductTags) => res.json(updatedProductTags))
@@ -127,19 +111,19 @@ router.put('/:id', (req, res) => {
       // console.log(err);
       res.status(400).json(err);
     });
+});
 
-// delete one product by its `id` value
+// DELETE ROUTE
 router.delete('/:id', (req, res) => {
   Product.destroy({
-    where:{
-      id:req.params.id
-    },
-  })
-  .then((delProd)=>{
-  res.json(delProd);
-  }).catch((err)=>{
+    where: {
+      id: req.params.id
+    }
+  }).then(delProduct=>{
+    res.json({msg: "product deleted",delProduct});
+  }).catch(err=>{
     console.log(err);
-    res.status(500).json({msg:"error",err});
+    res.status(500).json({msg:"error occurred",err});
   });
 });
 

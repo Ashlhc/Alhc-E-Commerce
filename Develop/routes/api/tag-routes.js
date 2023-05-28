@@ -1,81 +1,67 @@
 const router = require('express').Router();
 const { Tag, Product, ProductTag } = require('../../models');
 
-// The `/api/tags` endpoint
-  // find all tags
-  // be sure to include its associated Product data
+// GET ROUTE - ALL
 router.get('/', (req, res) => {
-Tag.findAll({
-  include:[Product]
-})
-  .then((tags)=>{
-  res.json(tags);
-})
-  .catch((err)=>{
+  Tag.findAll({
+    include: [{model:Product}]
+  }).then(tags=>{
+    res.json(tags);
+  }).catch(err=>{
     console.log(err);
-    res.status(500).json({msg:"error",err});
-  });
-});
-  // find a single tag by its `id`
-  // be sure to include its associated Product data
-router.get('/:id', (req, res) => {
-  Tag.findByPk(req.params.id)
-  .then(tagData=>{
-    res.json(tagData);
-  })
-  .catch((err)=>{
-    console.log(err);
-    res.status(500).json({msg:"error",err});
+    res.status(500).json({msg:"error occurred",err});
   });
 });
 
-  // create a new tag
+// GET ROUTE - SINGULAR
+router.get('/:id', (req, res) => {
+  Tag.findByPk(req.params.id,{
+    include: [{model:Product}]
+  }).then(tag=>{
+    res.json(tag);
+  }).catch(err=>{
+    console.log(err);
+    res.status(500).json({msg:"error occurred",err});
+  });
+});
+
+// POST ROUTE
 router.post('/', (req, res) => {
   Tag.create({
-    id:req.params.id,
-    tag_name:req.body.name,
-  })
-  .then((newTag)=>{
-    res.json(newTag);
-  })
-  .catch((err)=>{
+    tag_name: req.body.tag_name,
+  }).then(newTag=>{
+    res.json({msg: "new tag created",newTag});
+  }).catch(err=>{
     console.log(err);
-    res.status(500).json({msg:"error",err});
+    res.status(500).json({msg:"error occurred",err});
   });
 });
 
-  // update a tag's name by its `id` value
+// PUT ROUTE
 router.put('/:id', (req, res) => {
-  Tag.update({
-    id:req.params.id,
-    tag_name:req.body.name
-  },{
-    where:{
-      id:req.params.id
-    },
-  }
-)
-  .then((editTag)=>{
-    res.json(editTag);
-  })
-  .catch(err=>{
+  Tag.update({tag_name: req.body.tag_name}, {
+    where: {
+      id: req.params.id
+    }
+  }).then(updTag=>{
+    res.json({msg: "tag updated",updTag});
+  }).catch(err=>{
     console.log(err);
-    res.status(500).json({msg:"error",err})
+    res.status(500).json({msg:"error occurred",err});
   });
 });
 
-  // delete on tag by its `id` value
+// DELETE ROUTE
 router.delete('/:id', (req, res) => {
   Tag.destroy({
-    where:{
-      id:req.params.id
+    where: {
+      id: req.params.id
     }
-  }).then((delTag)=>{
-    res.json(delTag);
-  })
-    .catch((err)=>{
+  }).then(delTag=>{
+    res.json({msg: "tag deleted",delTag});
+  }).catch(err=>{
     console.log(err);
-    res.status(500).json({msg:"error",err});
+    res.status(500).json({msg:"error occurred",err});
   });
 });
 
